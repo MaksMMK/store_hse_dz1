@@ -1,5 +1,4 @@
--- Свой generic-тест: значение колонки не меньше нуля.
--- Возвращает «плохие» строки. null не считается нарушением: за него отвечает not_null.
+-- Значение колонки не меньше нуля.
 {% test non_negative(model, column_name) %}
 
 select {{ column_name }} as negative_value

@@ -1,7 +1,4 @@
--- Календарь: одна строка — один день без пропусков, от первого до последнего заказа.
--- Берём границы из stg_shop__orders, а не из fct_orders: календарь покроет и тестовые заказы,
--- а витрина дат не будет зависеть от витрины фактов.
--- Измерение крошечное: копия на каждом сегменте.
+-- Календарь: все дни от первого до последнего заказа.
 {{ config(distributed_replicated=true) }}
 
 with date_bounds as (
@@ -24,7 +21,7 @@ select
     to_char(date_day, 'YYYY-MM')                        as year_month,
     to_char(date_day, 'FMMonth')                        as month_name,
     extract(day from date_day)::int                     as day_of_month,
-    extract(isodow from date_day)::int                  as day_of_week,    -- 1 — понедельник, 7 — воскресенье
+    extract(isodow from date_day)::int                  as day_of_week,
     to_char(date_day, 'FMDay')                          as day_name,
     extract(isodow from date_day) in (6, 7)             as is_weekend
 from days

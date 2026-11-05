@@ -2,7 +2,7 @@
 
 # Аналитический слой интернет-магазина
 
-Проект строит витрины по схеме «звезда» в хранилище Greenplum.
+Витрины интернет-магазина по схеме «звезда» в Greenplum.
 
 ```
 PostgreSQL (OLTP) → loader → raw → analytics_staging → analytics_intermediate → analytics_marts
@@ -15,8 +15,8 @@ PostgreSQL (OLTP) → loader → raw → analytics_staging → analytics_interme
 
 Определение выручки: сумма `order_amount` по подтверждённым покупкам (`is_confirmed = true`).
 
-Известная проблема данных: заказ 113 на 200 рублей оплачен дважды, списано 400.
-Её показывает тест `assert_confirmed_orders_not_overcharged` со статусом WARN.
+Известная проблема: заказ 113 на 200 рублей оплачен дважды. Её показывает тест
+`assert_confirmed_orders_not_overcharged` со статусом WARN.
 
 {% enddocs %}
 

@@ -1,19 +1,17 @@
--- Итоги подтверждённых покупок: одна строка — один клиент, у которого есть покупки.
--- Клиентов без покупок здесь нет, они появятся в dim_customers через left join.
+-- Одна строка — один клиент с подтверждёнными покупками.
 with confirmed_orders as (
     select
         customer_id,
         order_id,
         ordered_at,
         order_amount,
-        -- order_id нужен: заказы 101 и 102 клиента 1 оформлены в одну и ту же секунду.
-        -- Без него «первая покупка» выбиралась бы случайно и менялась от запуска к запуску.
+        -- order_id нужен: заказы 101 и 102 оформлены в одну секунду
         row_number() over (
             partition by customer_id
             order by ordered_at, order_id
         ) as purchase_number
     from {{ ref('int_orders_with_payments') }}
-    where is_confirmed   -- тестовые заказы отсеяны: у них статус test, а не paid
+    where is_confirmed
 )
 
 select

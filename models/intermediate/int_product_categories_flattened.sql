@@ -1,11 +1,5 @@
--- Разворачиваем дерево категорий: одна строка — одна категория,
--- к ней приписаны родитель, корень дерева и уровень вложенности.
---
--- Рекурсия идёт сверху вниз:
---   1) первый select берёт корни (Electronics, Home);
---   2) второй select добавляет детей уже найденных категорий и повторяется,
---      пока новых строк не останется.
--- Глубина нигде не записана, поэтому четвёртый уровень ничего не сломает.
+-- Разворачиваем дерево категорий: одна строка — одна категория с родителем и корнем.
+-- Первый select берёт корни, второй добавляет их детей и повторяется, пока есть новые строки.
 with recursive category_tree as (
 
     select
@@ -24,7 +18,7 @@ with recursive category_tree as (
         child.category_id,
         child.category_name,
         parent.category_name        as parent_category_name,
-        parent.root_category_name,                             -- корень наследуется от родителя
+        parent.root_category_name,
         parent.category_level + 1   as category_level,
         parent.category_path || ' > ' || child.category_name   as category_path
     from {{ ref('stg_shop__product_categories') }} as child

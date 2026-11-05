@@ -1,6 +1,4 @@
--- Факт заказов: одна строка — один заказ. Тестовые заказы в витрину не попадают.
--- Распределение по order_id: так же распределены raw.orders, raw.order_items, raw.payments
--- и fct_order_items, поэтому JOIN по order_id идёт локально на каждом сегменте.
+-- Одна строка — один заказ, без тестовых заказов.
 {{ config(distributed_by='order_id') }}
 
 select
@@ -10,7 +8,7 @@ select
     o.ordered_at,
     o.order_status,
     o.order_amount,
-    coalesce(i.items_count, 0) as items_count,   -- 0 вместо null, если у заказа нет позиций
+    coalesce(i.items_count, 0) as items_count,
     o.paid_amount,
     o.refunded_amount,
     o.net_paid_amount,
