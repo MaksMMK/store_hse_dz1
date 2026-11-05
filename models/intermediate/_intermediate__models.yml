@@ -8,6 +8,7 @@ models:
     columns:
       - name: order_id
         description: "Номер заказа."
+        data_tests: [unique, not_null]
       - name: successful_payments_count
         description: "Число успешных оплат без возвратов."
       - name: paid_amount
@@ -17,10 +18,58 @@ models:
       - name: net_paid_amount
         description: "Оплачено минус возвращено."
       - name: is_confirmed
-        description: "Подтверждённая покупка: статус paid и хотя бы одна успешная оплата."
+        description: '{{ doc("confirmed_order") }}'
       - name: success_operations_count
         description: "Число операций в статусе success, включая возвраты."
       - name: failed_operations_count
         description: "Число неуспешных операций."
       - name: pending_operations_count
         description: "Число операций в ожидании."
+
+  - name: int_order_items_aggregated
+    description: "Позиции, свёрнутые до заказа: одна строка — один заказ."
+    columns:
+      - name: order_id
+        description: "Номер заказа."
+        data_tests: [unique, not_null]
+      - name: items_count
+        description: "Число разных товаров в заказе."
+
+  - name: int_order_items_with_orders
+    description: "Позиции с атрибутами заказа: одна строка — один товар в заказе, включая тестовые заказы."
+    columns:
+      - name: order_item_id
+        description: "Ключ позиции вида 101-1."
+        data_tests: [unique, not_null]
+      - name: is_confirmed
+        description: '{{ doc("confirmed_order") }}'
+
+  - name: int_customer_order_stats
+    description: >
+      Итоги подтверждённых покупок: одна строка — один клиент с покупками.
+      При одинаковом времени первым считается заказ с меньшим номером.
+    columns:
+      - name: customer_id
+        description: "Номер клиента."
+        data_tests: [unique, not_null]
+
+  - name: int_product_categories_flattened
+    description: >
+      Развёрнутое дерево категорий: одна строка — одна категория с родителем, корнем и уровнем.
+      Рекурсивный CTE работает с любой глубиной.
+    columns:
+      - name: category_id
+        description: "Номер категории."
+        data_tests: [unique, not_null]
+      - name: category_name
+        description: "Название категории."
+        data_tests: [unique, not_null]
+      - name: parent_category_name
+        description: "Родительская категория; пусто у верхнего уровня."
+      - name: root_category_name
+        description: "Верхний уровень дерева: Electronics или Home."
+        data_tests: [not_null]
+      - name: category_level
+        description: "Уровень вложенности: 1 — верхний."
+      - name: category_path
+        description: "Полный путь, например Home > Kitchen > Cookware."

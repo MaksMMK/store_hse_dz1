@@ -1,7 +1,6 @@
 version: 2
 
-# Задание 3. Описания и тесты staging-моделей.
-# Для stg_shop__orders часть тестов уже есть — допишите остальное по образцу.
+# Описания и тесты staging-моделей: по одной модели на каждую таблицу источника.
 
 models:
   - name: stg_shop__orders
@@ -26,6 +25,7 @@ models:
                 values: ['paid', 'pending', 'returned', 'cancelled', 'test']
       - name: order_amount
         description: "Сумма заказа в рублях после скидок."
+        data_tests: [not_null, non_negative]
 
   - name: stg_shop__customers
     description: "Клиенты из источника: одна строка — один клиент."
@@ -35,6 +35,36 @@ models:
         data_tests: [unique, not_null]
       - name: registration_date
         description: "Дата регистрации без времени."
+        data_tests: [not_null]
+
+  - name: stg_shop__products
+    description: "Товары из источника: одна строка — один товар. Категория записана текстом."
+    columns:
+      - name: product_id
+        description: "Номер товара."
+        data_tests: [unique, not_null]
+      - name: category_name
+        description: "Название категории; связывает товар со справочником категорий."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_shop__product_categories')
+                field: category_name
+
+  - name: stg_shop__product_categories
+    description: >
+      Категории из источника: одна строка — одна категория. Дерево хранится ссылкой на родителя,
+      разворачивается в int_product_categories_flattened.
+    columns:
+      - name: category_id
+        description: "Номер категории."
+        data_tests: [unique, not_null]
+      - name: parent_category_id
+        description: "Родительская категория; пусто у верхнего уровня."
+      - name: category_name
+        description: "Название категории. Уникально: по нему к категории привязан товар."
+        data_tests: [unique, not_null]
 
   - name: stg_shop__order_items
     description: "Позиции заказов: одна строка — один товар в заказе."
@@ -50,10 +80,22 @@ models:
               arguments:
                 to: ref('stg_shop__orders')
                 field: order_id
+      - name: product_id
+        description: "Товар."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_shop__products')
+                field: product_id
+      - name: quantity
+        description: "Количество единиц товара."
+        data_tests: [non_negative]
       - name: gross_amount
         description: "Сумма позиции до скидки: количество × цена."
       - name: line_amount
         description: "Сумма позиции после скидки."
+        data_tests: [non_negative]
 
   - name: stg_shop__payments
     description: "Платёжные операции: одна строка — одна операция. У заказа их может быть несколько."
@@ -70,10 +112,12 @@ models:
                 to: ref('stg_shop__orders')
                 field: order_id
       - name: payment_status
-        description: "Статус операции."
+        description: "Статус операции: success, failed, pending."
         data_tests:
           - accepted_values:
               arguments:
                 values: ['success', 'failed', 'pending']
+      - name: amount
+        description: "Сумма операции. Отрицательная у возврата, поэтому non_negative здесь применять нельзя."
       - name: is_refund
         description: "Возврат: успешная операция с отрицательной суммой."
