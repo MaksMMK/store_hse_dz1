@@ -162,6 +162,18 @@ where n.nspname = 'analytics_marts' and c.relkind = 'r';
 Расхождение `is_confirmed` с `fct_orders` ловит тест `assert_order_items_confirmation_is_fresh`.
 Исправляется полной пересборкой: `dbt run --full-refresh -s fct_order_items`.
 
+### Проверил на практике
+
+Поменял в `raw.orders` статус старого заказа 101 с `paid` на `returned` и запустил
+`dbt run -s fct_orders fct_order_items`.
+
+- `fct_orders` собралась целиком - `SELECT 135`, новый статус виден.
+- `fct_order_items` заменила только 9 последних строк - `INSERT 0 9`, заказ 101 не затронут.
+- Тест `assert_order_items_confirmation_is_fresh` упал - `FAIL 1`, позиция заказа устарела.
+
+После `dbt run --full-refresh -s fct_order_items` тест снова прошёл.
+Потом вернул данные через `docker compose run --rm loader` и пересобрал проект.
+
 ## Тесты
 
 Generic-тесты: `unique`, `not_null`, `relationships`, `accepted_values` и свой `non_negative` из `tests/generic/`.
