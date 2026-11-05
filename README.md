@@ -123,6 +123,25 @@ left join pg_am am on am.oid = c.relam
 where n.nspname = 'analytics_marts' and c.relkind = 'r';
 ```
 
+### Замеры
+
+Сделал копию `fct_order_items` с `distributed by (product_id)` и сравнил.
+
+Строк на сегментах (0, 1, 2, 3):
+
+| Таблица | Сегмент 0 | Сегмент 1 | Сегмент 2 | Сегмент 3 |
+| --- | --- | --- | --- | --- |
+| `fct_orders`, `order_id` | 30 | 32 | 34 | 39 |
+| `fct_order_items`, `order_id` | 87 | 113 | 98 | 127 |
+| Копия, `product_id` | 86 | 76 | 185 | 78 |
+
+При `product_id` на одном сегменте оказалось 185 строк, это перекос.
+
+В `EXPLAIN` для JOIN с `fct_orders` при `order_id` под `Hash Join` нет Motion, соединение идёт на месте.
+При `product_id` перед соединением появляется `Redistribute Motion` по `order_id`.
+Оценка стоимости почти не отличается (862.05 и 862.06), потому что данных мало.
+Опытную таблицу после этого удалил.
+
 ## Инкрементальная модель fct_order_items
 
 Из двух вариантов дополнительного задания я выбрал инкрементальную модель (`unique_key='order_item_id'`).
